@@ -1,0 +1,30 @@
+---
+import "../styles/global.css";
+import AuthGate from "../components/AuthGate";
+import AdminGuard from "../components/AdminGuard";
+import AdminHome from "../components/AdminHome";
+import LogoutButton from "../components/LogoutButton";
+---
+
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard Admin</title>
+  </head>
+  <body class="bg-slate-900 text-white">
+    <AuthGate client:load>
+      <AdminGuard client:load>
+        <main class="min-h-screen p-6 max-w-7xl mx-auto space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <h1 class="text-3xl font-bold">Dashboard Admin</h1>
+            <LogoutButton client:load />
+          </header>
+
+          <!-- ⬇️ ini kuncinya -->
+          <section><AdminHome client:load /></section>
+        </main>
+      </AdminGuard>
+    </AuthGate>
+  </body>
+</html>

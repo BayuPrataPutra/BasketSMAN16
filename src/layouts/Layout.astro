@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tim Basket | SMAN 16 Bandung</title>
+    <meta name="theme-color" content="#111827" />
+    <meta
+      name="description"
+      content="Profil resmi ekstrakurikuler bola basket SMAN 16 Bandung. Jersey, merchandise, program latihan, dan kegiatan terbaru."
+    />
+    <script async src="//www.instagram.com/embed.js"></script>
+  </head>
+  <body
+    class="bg-slate-900 text-white selection:bg-pink-500/30 selection:text-pink-200"
+  >
+    <slot />
+    <script>
+      // Scrollspy (desktop)
+      const sections = ["home", "instagram", "about", "gear", "contact"].map(
+        (id) => document.getElementById(id)
+      );
+      const links = Array.from(document.querySelectorAll(".nav-link"));
+      const linkMap = new Map(
+        links.map((a) => [a.getAttribute("href")?.replace("#", ""), a])
+      );
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const id = entry.target.id;
+            const link = linkMap.get(id);
+            if (!link) return;
+            if (entry.isIntersecting) {
+              links.forEach((a) => a.classList.remove("text-pink-400"));
+              link.classList.add("text-pink-400");
+            }
+          });
+        },
+        { rootMargin: "-50% 0px -45% 0px", threshold: 0.01 }
+      );
+      sections.forEach((sec) => sec && observer.observe(sec));
+    </script>
+  </body>
+</html>
+
+<style>
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>

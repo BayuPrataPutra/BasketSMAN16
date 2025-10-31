@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+    --color-pink: #FF91A4;
+    --color-primary-dark: #1A1917;
+    --color-gray: #B0BEC5;
+    --color-beige: #ECECEC;
+}
+
+.instagram-media {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
