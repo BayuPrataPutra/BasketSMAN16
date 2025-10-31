@@ -11,18 +11,7 @@ import AuthGate from "../components/AuthGate";
   </head>
 
   <body class="bg-slate-900 text-white">
-    <AuthGate client:load>
-      <main
-        class="min-h-screen flex flex-col items-center justify-center text-center p-6 space-y-4"
-      >
-        <div class="max-w-md">
-          <h1 class="text-3xl font-bold">Sistem Absensi Basket</h1>
-          <p class="opacity-70 mt-2 text-sm">
-            Sedang memeriksa status akun dan mengalihkan ke dashboard yang
-            sesuai...
-          </p>
-        </div>
-      </main>
-    </AuthGate>
+    <!-- Render di KLIEN SAJA agar langsung tampil AuthScreen ketika belum login -->
+    <AuthGate client:only="react" />
   </body>
 </html>

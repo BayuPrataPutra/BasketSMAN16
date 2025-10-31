@@ -12,7 +12,7 @@ import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 /** =======================
  *  Auth Gate (UI Enhanced)
  *  ======================= */
-export default function AuthGate({ children }: { children: React.ReactNode }) {
+export default function AuthGate({ children }: { children?: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [profileReady, setProfileReady] = useState(false);
@@ -114,53 +114,53 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   // Enforce route berdasarkan role
-  if (user && profileReady && profile) {
-    if (typeof window !== "undefined") {
-      const rawRole = typeof profile?.role === "string" ? profile.role : "";
-      const role =
-        rawRole.trim().toLowerCase() === "admin" ? "admin" : "student";
-      const path = window.location.pathname;
+  if (user && profileReady && profile && typeof window !== "undefined") {
+    const rawRole = typeof profile?.role === "string" ? profile.role : "";
+    const role = rawRole.trim().toLowerCase() === "admin" ? "admin" : "student";
+    const path = window.location.pathname;
+    const target = role === "admin" ? "/admin" : "/student";
 
-      const target = role === "admin" ? "/admin" : "/student";
-      const onHome = path === "/";
-      const onStudent = path.startsWith("/student");
-      const onAdmin = path.startsWith("/admin");
+    const onHome = path === "/";
+    const onStudent = path.startsWith("/student");
+    const onAdmin = path.startsWith("/admin");
+    const onAbsen = path.startsWith("/absen"); // <<— penting untuk alir dari halaman absen
 
-      if (onHome && !path.startsWith(target)) {
-        enforceRedirect(target);
-        return (
-          <FullScreenShell>
-            <CardGlass className="w-full max-w-sm text-center">
-              <div className="opacity-80">Mengalihkan ke dashboard {role}…</div>
-            </CardGlass>
-          </FullScreenShell>
-        );
-      }
+    // Dari "/" ATAU "/absen" arahkan ke dashboard sesuai role
+    if ((onHome || onAbsen) && !path.startsWith(target)) {
+      enforceRedirect(target);
+      return (
+        <FullScreenShell>
+          <CardGlass className="w-full max-w-sm text-center">
+            <div className="opacity-80">Mengalihkan ke dashboard {role}…</div>
+          </CardGlass>
+        </FullScreenShell>
+      );
+    }
 
-      if (onStudent && role === "admin") {
-        enforceRedirect("/admin");
-        return (
-          <FullScreenShell>
-            <CardGlass className="w-full max-w-sm text-center">
-              <div className="opacity-80">Mengalihkan ke dashboard admin…</div>
-            </CardGlass>
-          </FullScreenShell>
-        );
-      }
-      if (onAdmin && role === "student") {
-        enforceRedirect("/student");
-        return (
-          <FullScreenShell>
-            <CardGlass className="w-full max-w-sm text-center">
-              <div className="opacity-80">Mengalihkan ke dashboard siswa…</div>
-            </CardGlass>
-          </FullScreenShell>
-        );
-      }
+    // Jika salah halaman, paksa pindah
+    if (onStudent && role === "admin") {
+      enforceRedirect("/admin");
+      return (
+        <FullScreenShell>
+          <CardGlass className="w-full max-w-sm text-center">
+            <div className="opacity-80">Mengalihkan ke dashboard admin…</div>
+          </CardGlass>
+        </FullScreenShell>
+      );
+    }
+    if (onAdmin && role === "student") {
+      enforceRedirect("/student");
+      return (
+        <FullScreenShell>
+          <CardGlass className="w-full max-w-sm text-center">
+            <div className="opacity-80">Mengalihkan ke dashboard siswa…</div>
+          </CardGlass>
+        </FullScreenShell>
+      );
     }
   }
 
-  // Path sesuai → render halaman
+  // Path sesuai → render halaman (kalau dipakai di halaman yg memang butuh children)
   return <>{children}</>;
 }
 
@@ -333,7 +333,6 @@ function Onboarding({ uid, email }: { uid: string; email: string | null }) {
 
   return (
     <FullScreenShell>
-
       <CardGlass className="w-full max-w-md space-y-4" aria-live="polite">
         {msg && (
           <div className="rounded-xl border border-rose-500/30 bg-rose-900/20 px-3 py-2 text-sm text-rose-200">
@@ -395,29 +394,16 @@ function Onboarding({ uid, email }: { uid: string; email: string | null }) {
 function FullScreenShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Lapisan dasar: selaras dengan tema slate-900 */}
+      {/* Dasar tema */}
       <div className="absolute inset-0 bg-slate-900" />
 
-      {/* Aksen gradasi lembut: pink brand (selaras dengan site-mu) */}
-      <div
-        className="
-          pointer-events-none absolute inset-0
-          bg-[radial-gradient(1200px_600px_at_120%_-10%,rgba(236,72,153,0.12),transparent),
-              radial-gradient(900px_520px_at_-20%_110%,rgba(244,114,182,0.10),transparent)]
-        "
-      />
+      {/* Aksen gradien (pink brand selaras company profile) */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_600px_at_120%_-10%,rgba(236,72,153,0.12),transparent),radial-gradient(900px_520px_at_-20%_110%,rgba(244,114,182,0.10),transparent)]" />
 
-      {/* Grid tipis (subtle) biar modern */}
-      <div
-        className="
-          pointer-events-none absolute inset-0
-          [background-image:linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),
-                             linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)]
-          bg-size[24px_24px]
-        "
-      />
+      {/* Grid halus */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-size[24px_24px]" />
 
-      {/* Vignette lembut supaya fokus ke kartu */}
+      {/* Vignette lembut */}
       <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/10" />
 
       {/* Konten */}
@@ -437,10 +423,7 @@ function CardGlass({
 }) {
   return (
     <div
-      className={
-        "rounded-2xl bg-white/4 backdrop-blur-md border border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] p-6 " +
-        className
-      }
+      className={`rounded-2xl bg-white/4 backdrop-blur-md border border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] p-6 ${className}`}
     >
       {children}
     </div>
@@ -510,7 +493,7 @@ function Spinner({ small = false }: { small?: boolean }) {
   );
 }
 
-/** Icons (inline, tanpa dependency) */
+/** Icons */
 function GoogleIcon() {
   return (
     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
