@@ -277,7 +277,7 @@ function AuthScreen() {
 
           <div className="flex gap-2 pt-1">
             <Button onClick={doEmailLogin} disabled={!!busy} className="flex-1">
-              {busy === "login" ? <Spinner small /> : "Login"}
+              {busy === "login" ? <Spinner small /> : "Masuk"}
             </Button>
             <Button
               onClick={doEmailRegister}
