@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /student/
+Disallow: /absen/
+
+Sitemap: https://basketsman16bdg.my.id/sitemap-index.xml
