@@ -243,22 +243,29 @@ export default function AdminHome() {
     }
   };
 
-  // ===== Export CSV =====
+  /// ===== Export CSV =====
   const exportCsv = () => {
     if (!selectedSession) return;
+
     const rows = [
       ["Nama Siswa", "Status Kehadiran", "Alasan", "Waktu Absensi"],
       ...attendance.map((a) => [
         a.name,
         a.status,
         a.reason || "",
-        a.createdAt?.toDate ? a.createdAt.toDate().toISOString() : "",
+        a.createdAt?.toDate
+          ? a.createdAt.toDate().toLocaleString("id-ID")
+          : "",
       ]),
     ];
-    const csv = rows
-      .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    // 👇 Pakai ; dan TANPA tanda kutip
+    const csv = rows.map((r) => r.join(";")).join("\n");
+
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8;",
+    });
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
