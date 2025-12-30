@@ -45,15 +45,22 @@ type AttendanceDoc = {
 const DEFAULT_LOCATION = { lat: -6.9273429, lng: 107.6559513 }; // dekat Jl. Mekarsari
 const DEFAULT_RADIUS_METERS = 200;
 
-const toDate = (v: any) => (v && typeof v.toDate === "function" ? v.toDate() : new Date(v));
+const toDate = (v: any) =>
+  v && typeof v.toDate === "function" ? v.toDate() : new Date(v);
 const fmtID = (d: Date) =>
-  d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta", dateStyle: "full", timeStyle: "short" });
+  d.toLocaleString("id-ID", {
+    timeZone: "Asia/Jakarta",
+    dateStyle: "full",
+    timeStyle: "short",
+  });
 
 export default function AdminHome() {
   // ===== Data state =====
   const [students, setStudents] = useState<UserDoc[]>([]);
   const [sessions, setSessions] = useState<SessionDoc[]>([]);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
   const [attendance, setAttendance] = useState<AttendanceDoc[]>([]);
 
   // === Dialog State ===
@@ -81,11 +88,19 @@ export default function AdminHome() {
       setStudents(list as UserDoc[]);
     });
 
-    const qSessions = query(collection(db, "sessions"), orderBy("date", "desc"), limit(30));
+    const qSessions = query(
+      collection(db, "sessions"),
+      orderBy("date", "desc"),
+      limit(30)
+    );
     const unsubSessions = onSnapshot(qSessions, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as SessionDoc[];
+      const list = snap.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as any),
+      })) as SessionDoc[];
       setSessions(list);
-      if (!selectedSessionId && list.length > 0) setSelectedSessionId(list[0].id);
+      if (!selectedSessionId && list.length > 0)
+        setSelectedSessionId(list[0].id);
     });
 
     return () => {
@@ -98,9 +113,15 @@ export default function AdminHome() {
   // ===== Load attendance for selected session (realtime) =====
   useEffect(() => {
     if (!selectedSessionId) return;
-    const qAtt = query(collection(db, "attendance"), where("sessionId", "==", selectedSessionId));
+    const qAtt = query(
+      collection(db, "attendance"),
+      where("sessionId", "==", selectedSessionId)
+    );
     const unsub = onSnapshot(qAtt, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as AttendanceDoc[];
+      const list = snap.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as any),
+      })) as AttendanceDoc[];
       setAttendance(list);
     });
     return () => unsub();
@@ -125,45 +146,55 @@ export default function AdminHome() {
   const [note, setNote] = useState("");
   const [savingSession, setSavingSession] = useState(false);
 
- const createSession = async () => {
-  if (!title || !dateStr) {
-    showError("Gagal membuat sesi", "Isi judul dan tanggal terlebih dahulu.");
-    return;
-  }
-  setSavingSession(true);
-  try {
-    const when = Timestamp.fromDate(new Date(dateStr));
-    const previousTitle = title.trim();
+  const createSession = async () => {
+    if (!title || !dateStr) {
+      showError("Gagal membuat sesi", "Isi judul dan tanggal terlebih dahulu.");
+      return;
+    }
+    setSavingSession(true);
+    try {
+      const when = Timestamp.fromDate(new Date(dateStr));
+      const previousTitle = title.trim();
 
-    // ⬇️ pakai lokasi default jika lat/lng kosong
-    const hasLatLng = lat.trim() !== "" && lng.trim() !== "";
-    const location = hasLatLng ? { lat: Number(lat), lng: Number(lng) } : DEFAULT_LOCATION;
+      // ⬇️ pakai lokasi default jika lat/lng kosong
+      const hasLatLng = lat.trim() !== "" && lng.trim() !== "";
+      const location = hasLatLng
+        ? { lat: Number(lat), lng: Number(lng) }
+        : DEFAULT_LOCATION;
 
-    const docRef = await addDoc(collection(db, "sessions"), {
-      title: previousTitle,
-      date: when,
-      location,
-      radiusMeters: DEFAULT_RADIUS_METERS, // radius tetap 200m
-      note: note.trim() || null,
-      createdAt: serverTimestamp(),
-    });
+      const docRef = await addDoc(collection(db, "sessions"), {
+        title: previousTitle,
+        date: when,
+        location,
+        radiusMeters: DEFAULT_RADIUS_METERS, // radius tetap 200m
+        note: note.trim() || null,
+        createdAt: serverTimestamp(),
+      });
 
-    showSuccess(
-      "Sesi berhasil dibuat",
-      `ID: ${docRef.id}\nJudul: ${previousTitle || "(tanpa judul)"}\nLokasi: ${location.lat}, ${location.lng}${
-        hasLatLng ? "" : " (default SMAN 16 Bandung)"
-      }\nRadius: ${DEFAULT_RADIUS_METERS} m`
-    );
+      showSuccess(
+        "Sesi berhasil dibuat",
+        `ID: ${docRef.id}\nJudul: ${
+          previousTitle || "(tanpa judul)"
+        }\nLokasi: ${location.lat}, ${location.lng}${
+          hasLatLng ? "" : " (default SMAN 16 Bandung)"
+        }\nRadius: ${DEFAULT_RADIUS_METERS} m`
+      );
 
-    setTitle(""); setDateStr(""); setLat(""); setLng(""); setNote("");
-  } catch (e: any) {
-    console.error("[createSession] error:", e);
-    showError("Gagal membuat sesi", e?.message || "Terjadi kesalahan. Coba lagi.");
-  } finally {
-    setSavingSession(false);
-  }
-};
-
+      setTitle("");
+      setDateStr("");
+      setLat("");
+      setLng("");
+      setNote("");
+    } catch (e: any) {
+      console.error("[createSession] error:", e);
+      showError(
+        "Gagal membuat sesi",
+        e?.message || "Terjadi kesalahan. Coba lagi."
+      );
+    } finally {
+      setSavingSession(false);
+    }
+  };
 
   // ===== Admin mark attendance =====
   const [pickUid, setPickUid] = useState<string>("");
@@ -171,12 +202,18 @@ export default function AdminHome() {
   const [savingAtt, setSavingAtt] = useState(false);
 
   const adminMark = async (status: "present" | "excused") => {
-    if (!selectedSession) return showError("Tidak ada sesi", "Pilih sesi terlebih dahulu.");
-    if (!pickUid) return showError("Belum pilih siswa", "Pilih siswa yang ingin ditandai.");
+    if (!selectedSession)
+      return showError("Tidak ada sesi", "Pilih sesi terlebih dahulu.");
+    if (!pickUid)
+      return showError("Belum pilih siswa", "Pilih siswa yang ingin ditandai.");
     const stu = students.find((s) => s.id === pickUid);
-    if (!stu) return showError("Siswa tidak ditemukan", "Data siswa tidak ada.");
+    if (!stu)
+      return showError("Siswa tidak ditemukan", "Data siswa tidak ada.");
     if (status === "excused" && reason.trim().length < 3)
-      return showError("Alasan terlalu singkat", "Tulis alasan izin minimal 3 karakter.");
+      return showError(
+        "Alasan terlalu singkat",
+        "Tulis alasan izin minimal 3 karakter."
+      );
 
     setSavingAtt(true);
     try {
@@ -194,7 +231,10 @@ export default function AdminHome() {
         { merge: true }
       );
       setReason("");
-      showSuccess("Absensi disimpan", `${stu.name} → ${status === "present" ? "Hadir" : "Izin"}`);
+      showSuccess(
+        "Absensi disimpan",
+        `${stu.name} → ${status === "present" ? "Hadir" : "Izin"}`
+      );
     } catch (e: any) {
       console.error(e);
       showError("Gagal menyimpan absensi", e?.message || "Coba lagi.");
@@ -207,17 +247,17 @@ export default function AdminHome() {
   const exportCsv = () => {
     if (!selectedSession) return;
     const rows = [
-      ["sessionId", "uid", "name", "status", "reason", "createdAt"],
+      ["Nama Siswa", "Status Kehadiran", "Alasan", "Waktu Absensi"],
       ...attendance.map((a) => [
-        a.sessionId,
-        a.uid,
         a.name,
         a.status,
         a.reason || "",
         a.createdAt?.toDate ? a.createdAt.toDate().toISOString() : "",
       ]),
     ];
-    const csv = rows.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = rows
+      .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -244,7 +284,10 @@ export default function AdminHome() {
           <div className="font-semibold">
             {selectedSession ? (
               <>
-                {selectedSession.title} · <span className="opacity-80">{fmtID(toDate(selectedSession.date))}</span>
+                {selectedSession.title} ·{" "}
+                <span className="opacity-80">
+                  {fmtID(toDate(selectedSession.date))}
+                </span>
               </>
             ) : (
               <span className="opacity-60">—</span>
@@ -322,7 +365,9 @@ export default function AdminHome() {
                     <td className="py-2 pr-4">
                       <button
                         className={`px-3 py-1 rounded-xl ${
-                          selectedSessionId === s.id ? "bg-blue-600" : "bg-slate-600"
+                          selectedSessionId === s.id
+                            ? "bg-blue-600"
+                            : "bg-slate-600"
                         }`}
                         onClick={() => setSelectedSessionId(s.id)}
                       >
@@ -342,7 +387,8 @@ export default function AdminHome() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Rekap Absensi Sesi</h2>
           <div className="text-sm opacity-80">
-            Hadir: <b>{present.length}</b> · Izin: <b>{excused.length}</b> · Belum absen: <b>{notAttended.length}</b>
+            Hadir: <b>{present.length}</b> · Izin: <b>{excused.length}</b> ·
+            Belum absen: <b>{notAttended.length}</b>
           </div>
         </div>
 
@@ -373,7 +419,9 @@ export default function AdminHome() {
                     <li key={a.id}>
                       <div className="flex items-start justify-between gap-2">
                         <span>{a.name}</span>
-                        {a.reason && <span className="opacity-70 text-xs">{a.reason}</span>}
+                        {a.reason && (
+                          <span className="opacity-70 text-xs">{a.reason}</span>
+                        )}
                       </div>
                     </li>
                   ))}
@@ -399,7 +447,9 @@ export default function AdminHome() {
         {/* Actions: admin mark & export */}
         <div className="mt-4 flex flex-col md:flex-row gap-3 md:items-end">
           <div className="flex-1">
-            <label className="text-xs opacity-70">Pilih siswa untuk tandai</label>
+            <label className="text-xs opacity-70">
+              Pilih siswa untuk tandai
+            </label>
             <select
               className="w-full p-2 rounded bg-slate-900 mt-1"
               value={pickUid}
@@ -414,7 +464,9 @@ export default function AdminHome() {
             </select>
           </div>
           <div className="flex-1">
-            <label className="text-xs opacity-70">Alasan izin (opsional / wajib untuk izin)</label>
+            <label className="text-xs opacity-70">
+              Alasan izin (opsional / wajib untuk izin)
+            </label>
             <input
               className="w-full p-2 rounded bg-slate-900 mt-1"
               placeholder="Alasan izin…"
@@ -465,7 +517,9 @@ export default function AdminHome() {
               </button>
             </div>
 
-            <pre className="whitespace-pre-wrap text-sm opacity-90 mt-3">{dialog.message}</pre>
+            <pre className="whitespace-pre-wrap text-sm opacity-90 mt-3">
+              {dialog.message}
+            </pre>
 
             <div className="mt-4 flex justify-end">
               <button
